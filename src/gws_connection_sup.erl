@@ -22,7 +22,7 @@ init([Callback, IP, Port, UserArgs]) ->
                end,  
     {ok, LSock} = gen_tcp:listen(Port, SockOpts),
     Server = {gws_server, {gws_server, start_link, [Callback, LSock, UserArgs]}, 
-              temporary, brutal_kill, work, [gws_server]},
+              temporary, brutal_kill, worker, [gws_server]},
     RestartStrategy = {simple_one_for_one, 1000, 3600},
     {ok, {RestartStrategy, [Server]}}.
 		        
