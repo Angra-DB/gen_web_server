@@ -78,6 +78,7 @@ handle_http_request(#state{callback = Callback,
     {http_request, Method, _, _} = Request,
     Reply = dispatch(Method, Request, Headers, Body, Callback, UserData),
     gen_tcp:send(State#state.socket, Reply),
+    gen_tcp:close(State#state.socket),
     State.
 
 dispatch('GET', Request, Headers, _Body, Callback, UserData) ->
