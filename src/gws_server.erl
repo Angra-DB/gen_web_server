@@ -9,7 +9,7 @@
 -record(state, {lsock, socket, request_line, headers=[], body = <<>>, content_remaining = 0, 
                 callback, user_data, parent}).
 
-start_link(Callback, LSock, UserArgs) ->
+start_link([Callback, LSock, UserArgs]) ->
     gen_server:start_link(?MODULE, [Callback, LSock, UserArgs, self()], []).
 
 init([Callback, LSock, UserArgs, Parent]) ->
