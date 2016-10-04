@@ -23,6 +23,11 @@ handle_call(_Request, _From, State) ->
 handle_cast(_Request, State) ->
     {noreply, State}.
 
+handle_info(timeout, #state{lsock = LSock, parent = Parent} = State) ->
+    {ok, Socket} = gen_tcp:accept(LSock),
+    gws_connections_sup:start_child(Parent),
+    inet:setopts(Socket, [{active,onece}]),
+    {noreply, State#state{socket = Socket}};
 handle_info({http, _Sock, {http_request, _, _, _} = Request}, State) ->
     inet:setopts(State#state.socket, [{active, once}]),
     {noreply, State#state{request_line = Request}};
@@ -42,12 +47,7 @@ handle_info({http, _Sock, Data}, State) when is_binary(Data) ->
        true  -> {stop, normal, handle_http_request(NewState)}
     end;
 handle_info({tcp_closed, _Sock}, State) -> 
-    {stop, normal, State};
-handle_info(timeou, #state{lsock = LSock, parent = Parent} = State) ->
-    {ok, Socket} = gen_tcp:accept(LSock),
-    gws_connections_sup:start_child(Parent),
-    inet:setopts(Socket, [{active,onece}]),
-    {noreply, State#state{socket = Socket}}.
+    {stop, normal, State}.
 
 terminate(_Reason, _Socket) ->
     ok. 

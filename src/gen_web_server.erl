@@ -23,7 +23,7 @@ start_link(Callback, Port, UserArgs) ->
     start_link(Callback, undefined, Port, UserArgs).
 
 start_link(Callback, IP, Port, UserArgs) ->
-    gws_connections_sup:start_link(Callback, IP, Port, UserArgs).
+    gws_connection_sup:start_link(Callback, IP, Port, UserArgs).
 
 http_reply(Code, Headers, Body) ->
     ContentBytes = iolist_to_binary(Body),
