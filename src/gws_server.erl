@@ -22,7 +22,7 @@ handle_call(_Request, _From, State) ->
 
 handle_cast(_Request, State) ->
     {noreply, State}.
-
+%gws_server:handle_info({http,#Port<0.40364>,{http_header,14,'Host',undefined,<<"localhost:4321">>}}, {state,#Port<0.40336>,#Port<0.40364>,{http_request,'GET',{abs_path,<<"/">>},{1,1}},[],<<>>,0,adb_web_server,...}
 handle_info(timeout, #state{lsock = LSock, parent = Parent} = State) ->
     {ok, Socket} = gen_tcp:accept(LSock),
     gws_connection_sup:start_child(Parent),
@@ -31,7 +31,7 @@ handle_info(timeout, #state{lsock = LSock, parent = Parent} = State) ->
 handle_info({http, _Sock, {http_request, _, _, _} = Request}, State) ->
     inet:setopts(State#state.socket, [{active, once}]),
     {noreply, State#state{request_line = Request}};
-handle_info({http, _Sock, {http_header, _, Name, Value}}, State) ->
+handle_info({http, _Sock, {http_header, _, Name, _, Value}}, State) ->
     inet:setopts(State#state.socket, [{active, once}]),
     {noreply, header(Name, Value, State)};
 handle_info({http, _Sock, http_eoh}, State) -> % end-of-headers
