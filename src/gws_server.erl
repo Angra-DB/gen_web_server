@@ -25,8 +25,9 @@ handle_cast(_Request, State) ->
 
 handle_info(timeout, #state{lsock = LSock, parent = Parent} = State) ->
     {ok, Socket} = gen_tcp:accept(LSock),
+    lager:info("started connection "),
     gws_connection_sup:start_child(Parent),
-    inet:setopts(Socket, [{active,onece}]),
+    inet:setopts(Socket, [{active,once}]),
     {noreply, State#state{socket = Socket}};
 handle_info({http, _Sock, {http_request, _, _, _} = Request}, State) ->
     inet:setopts(State#state.socket, [{active, once}]),
@@ -78,7 +79,6 @@ handle_http_request(#state{callback = Callback,
     {http_request, Method, _, _} = Request,
     Reply = dispatch(Method, Request, Headers, Body, Callback, UserData),
     gen_tcp:send(State#state.socket, Reply),
-    gen_tcp:close(State#state.socket),
     State.
 
 dispatch('GET', Request, Headers, _Body, Callback, UserData) ->
