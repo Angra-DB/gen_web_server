@@ -36,6 +36,9 @@ handle_info({http, _Sock, {http_header, _, Name, _, Value}}, State) ->
     io:format("receive header ~s", [Name]),
     inet:setopts(State#state.socket, [{active, once}]),
     {noreply, header(Name, Value, State)};
+handle_info({http, _Sock, http_eoh}, #state{content_remaining = 0} = State) -> % end-of-headers
+    inet:setopts(State#state.socket, [{active, once}, {packet, raw}]),
+    {noreply, State};
 handle_info({http, _Sock, http_eoh}, State) -> % end-of-headers
     inet:setopts(State#state.socket, [{active, once}, {packet, raw}]),
     {noreply, State};    
