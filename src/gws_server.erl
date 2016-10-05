@@ -29,17 +29,14 @@ handle_info(timeout, #state{lsock = LSock, parent = Parent} = State) ->
     inet:setopts(Socket, [{active,once}]),
     {noreply, State#state{socket = Socket}};
 handle_info({http, _Sock, {http_request, _, _, _} = Request}, State) ->
-    io:format("receive request", []),
     inet:setopts(State#state.socket, [{active, once}]),
     {noreply, State#state{request_line = Request}};
 handle_info({http, _Sock, {http_header, _, Name, _, Value}}, State) ->
-    io:format("receive header ~s", [Name]),
     inet:setopts(State#state.socket, [{active, once}]),
     {noreply, header(Name, Value, State)};
-handle_info({http, _Sock, http_eoh}, #state{content_remaining = 0} = State) -> % end-of-headers
-    inet:setopts(State#state.socket, [{active, once}, {packet, raw}]),
-    {noreply, State};
-handle_info({http, _Sock, http_eoh}, State) -> % end-of-headers
+handle_info({http, _Sock, http_eoh}, #state{content_remaining = 0} = State) -> % end-of-headers / no body	
+	{stop, normal, handle_http_request(State)};
+handle_info({http, _Sock, http_eoh}, State) -> % end-of-headers / with body
     inet:setopts(State#state.socket, [{active, once}, {packet, raw}]),
     {noreply, State};    
 handle_info({tcp, _Sock, Data}, State) when is_binary(Data) -> 
@@ -79,9 +76,10 @@ handle_http_request(#state{callback = Callback,
                            request_line = Request, 
                            headers = Headers, 
                            body = Body, 
-                           user_data = UserData} = State) -> 
+                           user_data = UserData} = State) ->
     {http_request, Method, _, _} = Request,
     Reply = dispatch(Method, Request, Headers, Body, Callback, UserData),
+	io:format("Sending reply:\n~s\n" ,[Reply]),
     gen_tcp:send(State#state.socket, Reply),
     State.
 
