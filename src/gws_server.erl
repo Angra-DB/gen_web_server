@@ -37,7 +37,7 @@ handle_info({http, _Sock, {http_header, _, Name, _, Value}}, State) ->
 handle_info({http, _Sock, http_eoh}, State) -> % end-of-headers
     inet:setopts(State#state.socket, [{active, once}, {packet, raw}]),
     {noreply, State};    
-handle_info({http, _Sock, Data}, State) when is_binary(Data) -> 
+handle_info({tcp, _Sock, Data}, State) when is_binary(Data) -> 
     ContentRem = State#state.content_remaining - byte_size(Data),
     Body = list_to_binary([State#state.body, Data]),
     NewState = State#state{body = Body, content_remaining = ContentRem},
