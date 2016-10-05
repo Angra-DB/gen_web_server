@@ -29,11 +29,11 @@ handle_info(timeout, #state{lsock = LSock, parent = Parent} = State) ->
     inet:setopts(Socket, [{active,once}]),
     {noreply, State#state{socket = Socket}};
 handle_info({http, _Sock, {http_request, _, _, _} = Request}, State) ->
-    io:format("receive request ~s", [Request]),
+    io:format("receive request", []),
     inet:setopts(State#state.socket, [{active, once}]),
     {noreply, State#state{request_line = Request}};
 handle_info({http, _Sock, {http_header, _, Name, _, Value}}, State) ->
-    io:format("receive header ~s : ~s", [Name, Value]),
+    io:format("receive header ~s", [Name]),
     inet:setopts(State#state.socket, [{active, once}]),
     {noreply, header(Name, Value, State)};
 handle_info({http, _Sock, http_eoh}, State) -> % end-of-headers
